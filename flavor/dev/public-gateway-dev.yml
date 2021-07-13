@@ -1,0 +1,109 @@
+server:
+  port: 8081
+  registry-port: 8888
+  public-auth-port: 9000
+
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: localhost
+
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.registry-port}/eureka
+
+spring:
+  #jackson:
+    #property-naming-strategy: SNAKE_CASE
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/PublicGateway?readPreference=primary&appname=Board%20Wars&ssl=false
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
+  kafka:
+    bootstrap-servers: localhost:9092
+auth:
+  server:
+    github-properties:
+      ref: github
+      id: 0904cb45e8277258ca18
+      secret: 05424b6c6e00b3bebeb30e42073933b5a0803c9a
+      redirect: http://${eureka.instance.hostname}:${server.port}/login/oauth2/code/github
+      authorize: 'https://github.com/login/oauth/authorize'
+      token: 'https://github.com/login/oauth/access_token'
+      name: Github Login
+      user-info: 'https://api.github.com/user'
+      user-info-name: login
+      scopes:
+        - read:user
+        - read:org
+    local-properties:
+      ref: local
+      id: board-client
+      secret: board-client-secret
+      redirect: http://${eureka.instance.hostname}:${server.port}/login/oauth2/code/local
+      name: Local Login
+      issuer: http://public-auth:${server.public-auth-port}
+      scopes:
+        - openid
+        - message.read
+        - message.write
+  client:
+    cookie:
+      age: 86400 #one day -> research standard age
+      secure: false
+
+#application level properties
+app:
+  interfaceHost: http://localhost:4200
+  markerTokenHash: 41f3fdc6497ca2715be17364b11ea631c2b99ffe09f0451205e27b5f3501b35a
+  markerTokenHashClaim: marker-claim
+  markerTokenHashKey: marker-token
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+    instances:
+      gateway:
+        baseConfig: default
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 100
+    instances:
+      gateway:
+        maxConcurrentCalls: 10

@@ -1,0 +1,102 @@
+server:
+  port: 0
+  registry-port: 8888
+
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: localhost
+
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.registry-port}/eureka
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  kafka:
+    bootstrap-servers: localhost:9092
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/ManagementService?readPreference=primary&appname=Board%20Wars&ssl=false
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            provider: github
+            client-id: 0904cb45e8277258ca18
+            client-secret: 05424b6c6e00b3bebeb30e42073933b5a0803c9a
+            authorization-grant-type: client_credentials
+            scope: read:user
+      resourceserver:
+        jwt:
+          issuer-uri: http://public-auth:9000
+
+app:
+  markerTokenHash: 41f3fdc6497ca2715be17364b11ea631c2b99ffe09f0451205e27b5f3501b35a
+  markerTokenHashClaim: marker-claim
+  markerTokenHashKey: marker-token
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+
+route:
+  intermediate:
+    authServerManagementLink: http://public-auth/user/linked?linked={0}
+    authServerUpdateUser: http://public-auth/user/{0}
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+        ignoreExceptions:
+          - com.board.wars.error.ManagementResponseException
+    instances:
+      management:
+        baseConfig: default
+  thread-pool-bulkhead:
+    configs:
+      default:
+        maxThreadPoolSize: 5
+        coreThreadPoolSize: 3
+        queueCapacity: 3
+    instances:
+      management:
+        baseConfig: default
+  ratelimiter:
+    configs:
+      default:
+        registerHealthIndicator: false
+        limitForPeriod: 10
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+        eventConsumerBufferSize: 100
+    instances:
+      management:
+        baseConfig: default
+  timelimiter:
+    configs:
+      default:
+        cancelRunningFuture: false
+        timeoutDuration: 2s
+    instances:
+      management:
+        baseConfig: default

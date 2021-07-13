@@ -1,0 +1,52 @@
+server:
+  port: 45964
+  registry-port: 8888
+
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: registry-server
+
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.registry-port}/eureka
+
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  kafka:
+    bootstrap-servers: kafka-server:9092
+  data:
+    mongodb:
+      uri: mongodb://db-server:27017/KanbanProject?readPreference=primary&appname=Board%20Wars&ssl=false
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            provider: github
+            client-id: 0904cb45e8277258ca18
+            client-secret: 05424b6c6e00b3bebeb30e42073933b5a0803c9a
+            authorization-grant-type: client_credentials
+            scope: read:user
+      resourceserver:
+        jwt:
+          issuer-uri: http://public-auth:9000
+
+app:
+  markerTokenHash: 41f3fdc6497ca2715be17364b11ea631c2b99ffe09f0451205e27b5f3501b35a
+  markerTokenHashClaim: marker-claim
+  markerTokenHashKey: marker-token
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    org.springframework.data.mongodb.core.MongoTemplate: DEBUG
+

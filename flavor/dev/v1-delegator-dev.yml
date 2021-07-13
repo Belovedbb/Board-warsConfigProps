@@ -1,0 +1,64 @@
+server:
+  port: 0
+  registry-port: 8888
+
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: localhost
+
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.registry-port}/eureka
+
+spring:
+  kafka:
+    consumer:
+      group-id: delegate
+      auto-offset-reset: latest
+    bootstrap-servers: localhost:9092
+  security:
+    oauth2:
+      client:
+        registration:
+          github:
+            provider: github
+            client-id: 0904cb45e8277258ca18
+            client-secret: 05424b6c6e00b3bebeb30e42073933b5a0803c9a
+            authorization-grant-type: client_credentials
+            scope: read:user
+      resourceserver:
+        jwt:
+          issuer-uri: http://public-auth:9000
+  cloud:
+    loadbalancer:
+      ribbon:
+        enabled: false
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+          lowerCaseServiceId: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+
+route:
+  intermediate:
+    kanbanHistoryLink: http://kanban-project/kanban/history/{0}?page={1}&size={2}
+    managementHistoryLink: http://management-service/management/history?page={0}&size={1}

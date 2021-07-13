@@ -1,0 +1,46 @@
+server:
+  servlet:
+    session:
+      tracking-modes: cookie
+  port: 9000
+  registry-port: 8888
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+#homepage to overall application, for oauth2 effective login
+service:
+  homepage: http://localhost:8081
+
+eureka:
+  instance:
+    preferIpAddress: true
+    hostname: localhost
+
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.registry-port}/eureka
+
+spring:
+  data:
+    mongodb:
+      auto-index-creation: true
+      uri: mongodb://localhost:27017/PublicAuth?readPreference=primary&appname=Board%20Wars&ssl=false
+
+app:
+  markerTokenHash: 41f3fdc6497ca2715be17364b11ea631c2b99ffe09f0451205e27b5f3501b35a
+  markerTokenHashClaim: marker-claim
+  markerTokenHashKey: marker-token
+
+logging:
+  level:
+    root: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.springframework.boot.autoconfigure: DEBUG
