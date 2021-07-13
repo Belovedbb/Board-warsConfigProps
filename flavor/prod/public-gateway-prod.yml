@@ -84,3 +84,26 @@ logging:
     org.springframework.security.oauth2: INFO
     org.springframework.boot.autoconfigure: INFO
     org.springframework.data.mongodb.core.ReactiveMongoTemplate: INFO
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 5s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
+    instances:
+      gateway:
+        baseConfig: default
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 100
+    instances:
+      gateway:
+        maxConcurrentCalls: 10
